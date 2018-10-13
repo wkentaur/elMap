@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="et">
+  <head>
+    <title>elMap</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="elmap.css">
+  </head>
+  <body>
+    <div id="app" class="container">
+
+        <div class="row">
+
+          <div class="col-md-9">
+            <l-map ref="map" :zoom="zoom" :center="center" v-bind:style="{ cursor: mapCursor }">
+              <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
+              <l-marker v-for="marker in markers" :ref="'m-' + marker.id" :key="marker.id" :options="{markerId: marker.id}"
+                :interactive="markersDraggable" :draggable="markersDraggable"
+                :lat-lng="marker.position" :icon="marker.icon" @moveend="markerMoved">
+                <l-popup :content="popupMsg(marker.title, marker.desc)"/>
+              </l-marker>
+              <l-marker v-if="newmarker" :lat-lng="newmarker.position" :icon="newmarker.icon"></l-marker>
+            </l-map>
+          </div>
+
+          <div class="col-md-3">
+
+              <div class="form-group">
+                <label for="elCoords">Koordinaadid: </label>
+                <input type="text" id="elCoords" class="form-control" v-model="elCoordsValue" disabled />
+                <label for="elName">Nimi: </label>
+                <input type="text" id="elTitle" maxlength="28" class="form-control" v-model="elTitleValue"/>
+                <label for="elDesc">Kirjeldus: </label>
+                <textarea id="elDesc" class="form-control" v-model="elDescValue"  @keydown="areaOnKeyDown"></textarea>
+              </div>
+                <input name="elMark" @click="waitForMarker" value="Märgi kaardil" class="btn btn-primary btn-block">
+                <input name="elCancel" @click="resetInput" value="Katkesta" class="btn btn-secondary btn-block" :disabled="(! elCoordsValue) && (mapCursor != 'crosshair')">
+                <input name="elSave" @click="saveMarker" value="Salvesta" class="btn btn-success btn-block" :disabled="! elCoordsValue">
+          </div>
+        </div>
+        <div class="row" style=" margin-top: 25px;">
+          <div class="col-md-12">
+            <table class="table table-striped">
+              <tr>
+                <th>#</th>
+                <th>Nimi</th>
+                <th>Kirjeldus</th>
+                <th>Koordinaadid</th>
+                <th>Lähim objekt</th>
+                <th></th>
+              </tr>
+              <template v-for="(marker, index) in markers">
+               <tr v-bind:key="marker.id" @click="markerRowClicked(marker.id)">
+                <td>{{ index + 1 }}</td>
+                <td>{{ marker.title }}</td>
+                <td>{{ marker.desc }}</td>
+                <td>{{ coordsToString(marker.position) }}</td>
+                <td><span v-if="marker.closest">{{marker.closest.title}} ({{ marker.closestDist }} m)</span></td>
+                <td><button type="button" @click.once.stop="removeMarker(index)" class="btn btn-danger">Kustuta</button></td>
+               </tr>
+              </template>
+            </table>
+            <p v-if="! markers.length" class="alert alert-warning">Pole midagi salvestatud.</p>
+          </div>
+        </div>
+
+    </div>
+
+
+    <!-- DEV version, includes helpful console warnings
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>    
+    <script src="https://unpkg.com/vue2-leaflet@1.0.1/dist/vue2-leaflet.js"></script>  -->
+    <script src="js/vue.min.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/vue2-leaflet.min.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
